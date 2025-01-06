@@ -18,7 +18,7 @@ def row_to_model(row: tuple) -> Creature:
         aka=aka)
 
 def model_to_dict(creature: Creature) -> dict:
-    return creature.dict()
+    return creature.model_dump()
 
 def get_one(name: str) -> Creature:
     qry = "select * from creature where name=:name"
@@ -43,6 +43,7 @@ def get_random_name() -> str:
     return name
 
 def create(creature: Creature) -> Creature:
+    if not creature: return None
     qry = """insert into creature
         (name, country, area, description, aka)
         values
@@ -56,6 +57,7 @@ def create(creature: Creature) -> Creature:
             f"Creature {creature.name} already exists")
 
 def modify(name: str, creature: Creature) -> Creature:
+    if not (name and creature): return None
     qry = """update creature set
              name=:name,
              country=:country,
@@ -72,6 +74,7 @@ def modify(name: str, creature: Creature) -> Creature:
         raise Missing(msg=f"Creature {name} not found")
 
 def delete(name: str):
+    if not name: return False
     qry = "delete from creature where name = :name"
     params = {"name": name}
     curs.execute(qry, params)
