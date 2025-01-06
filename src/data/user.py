@@ -16,7 +16,7 @@ def row_to_model(row: tuple) -> User:
     return User(name=name, hash=hash)
 
 def model_to_dict(user: User) -> dict:
-    return user.dict()
+    return user.model_dump()
 
 def get_one(name: str) -> User:
     qry = "select * from user where name=:name"
@@ -35,6 +35,7 @@ def get_all() -> list[User]:
 
 def create(user: User, table:str = "user") -> User:
     """Add <user> to user or xuser table"""
+    if not user: return None
     if table not in ("user", "xuser"):
         raise Exception(f"Invalid table name {table}")
     qry = f"""insert into {table}
@@ -47,7 +48,7 @@ def create(user: User, table:str = "user") -> User:
     except IntegrityError:
         raise Duplicate(msg=
             f"{table}: user {user.name} already exists")
-    return user
+    return get_one(user.name)
 
 def modify(name: str, user: User)  -> User:
     qry = """update user set
@@ -63,8 +64,9 @@ def modify(name: str, user: User)  -> User:
     else:
         raise Missing(msg=f"User {name} not found")
 
-def delete(name: str) -> None:
+def delete(name: str) -> User:
     """Drop user with <name> from user table, add to xuser table"""
+    if not name: return False
     user = get_one(name)
     qry = "delete from user where name = :name"
     params = {"name": name}
